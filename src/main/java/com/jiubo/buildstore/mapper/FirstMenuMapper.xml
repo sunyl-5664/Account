@@ -4,7 +4,7 @@
     <select id="getFMByCondition" resultType="com.jiubo.buildstore.bean.FirstMenuBean">
         select * from first_menu
         <where>
-            <if test="firstMenuBean.idList != null and firstMenuBean.idList.size() > 0">
+            <if test="null != firstMenuBean and firstMenuBean.idList != null and firstMenuBean.idList.size() > 0">
                 ID in
                 <foreach collection="firstMenuBean.idList" open="(" close=")" separator="," item="item">
                     #{item}

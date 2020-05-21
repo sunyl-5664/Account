@@ -2,6 +2,9 @@ package com.jiubo.buildstore.service;
 
 import com.jiubo.buildstore.bean.FirstMenuBean;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +16,9 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface FirstMenuService extends IService<FirstMenuBean> {
 
+    public List<FirstMenuBean> getFMByCondition();
+
+    public void addFM(FirstMenuBean firstMenuBean);
+
+    public void patchFMById(FirstMenuBean firstMenuBean);
 }
