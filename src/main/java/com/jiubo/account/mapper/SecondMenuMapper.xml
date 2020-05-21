@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jiubo.account.dao.SecondMenuDao">
+    <select id="getSMByCondition" resultType="com.jiubo.account.bean.SecondMenuBean">
+        select * from second_menu
+        <where>
+        1=1
+            <if test="null != secondMenuBean and secondMenuBean.idList != null and secondMenuBean.idList.size() >0">
+               and ID in
+                <foreach collection="secondMenuBean.idList" open="(" close=")" separator="," item="item">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="null != secondMenuBean and secondMenuBean.firstIdList != null and secondMenuBean.firstIdList.size() >0">
+                and FIRST_ID in
+                <foreach collection="secondMenuBean.firstIdList" open="(" close=")" separator="," item="item">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <insert id="addSM" useGeneratedKeys="true" keyProperty="id">
+        insert into second_menu (MENU_NAME,MENU_PATH,FIRST_ID,MENU_CODE,CREATE_TIME)
+        values (#{secondMenuBean.menuName},#{secondMenuBean.menuPath},#{secondMenuBean.firstId},
+        #{secondMenuBean.menuCode},#{secondMenuBean.createTime})
+    </insert>
+
+    <update id="patchSMById">
+        update second_menu
+        <trim prefix="set" suffixOverrides=",">
+            <if test="secondMenuBean.menuName != null and secondMenuBean.menuName != ''">
+                MENU_NAME = #{secondMenuBean.menuName},
+            </if>
+            <if test="secondMenuBean.menuPath != null and secondMenuBean.menuPath != ''">
+                MENU_PATH = #{secondMenuBean.menuPath},
+            </if>
+            <if test="secondMenuBean.firstId != null">
+                FIRST_ID = #{secondMenuBean.firstId},
+            </if>
+            <if test="secondMenuBean.menuCode != null and secondMenuBean.menuCode != ''">
+                MENU_CODE = #{secondMenuBean.menuCode}
+            </if>
+        </trim>
+        where ID = #{secondMenuBean.id}
+    </update>
+</mapper>

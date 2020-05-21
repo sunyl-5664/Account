@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jiubo.account.dao.FirstMenuDao">
+    <select id="getFMByCondition" resultType="com.jiubo.account.bean.FirstMenuBean">
+        select * from first_menu
+        <where>
+            <if test="null != firstMenuBean and firstMenuBean.idList != null and firstMenuBean.idList.size() > 0">
+                ID in
+                <foreach collection="firstMenuBean.idList" open="(" close=")" separator="," item="item">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <insert id="addFM"  useGeneratedKeys="true" keyProperty="id">
+        insert into first_menu (MENU_NAME,MENU_CODE,MENU_PATH,CREATE_TIME)
+        values (#{firstMenuBean.menuName},#{firstMenuBean.menuCode},#{firstMenuBean.menuPath},#{firstMenuBean.createTime})
+    </insert>
+
+    <update id="patchFMById">
+        update first_menu
+        <trim prefix="set" suffixOverrides=",">
+            <if test="firstMenuBean.menuName != null and firstMenuBean.menuName != ''">
+                MENU_NAME = #{firstMenuBean.menuName},
+            </if>
+            <if test="firstMenuBean.menuCode != null and firstMenuBean.menuCode != ''">
+                MENU_CODE = #{firstMenuBean.menuCode},
+            </if>
+            <if test="firstMenuBean.menuPath != null and firstMenuBean.menuPath != ''">
+                MENU_PATH = #{firstMenuBean.menuPath}
+            </if>
+        </trim>
+        where ID = #{firstMenuBean.id}
+    </update>
+</mapper>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jiubo.account.dao.AccountDao">
+
+    <select id="queryAccountList" parameterType="com.jiubo.account.bean.AccountBean"
+            resultType="com.jiubo.account.bean.AccountBean">
+        SELECT SA_ID,NAME,PHONE,ACCOUNT,PWD
+        FROM account
+        <where>
+            <if test="account != null and account != ''">
+                AND ACCOUNT = #{account}
+            </if>
+            <if test="pwd != null and pwd != ''">
+                AND PWD = #{pwd}
+            </if>
+        </where>
+    </select>
+
+    <insert id="addAccount" useGeneratedKeys="true" keyProperty="saId">
+        insert into account (NAME,PHONE,ACCOUNT,PWD,CREATE_TIME)
+        values
+        (#{name},#{phone},#{account},#{pwd},#{createTime})
+    </insert>
+
+    <update id="patchAccount">
+        update account
+        <trim prefix="set" suffixOverrides=",">
+            <if test="name != null and name != ''">
+                NAME = #{name},
+            </if>
+            <if test="phone != null and phone != ''">
+                PHONE = #{phone},
+            </if>
+            <if test="account != null and account != ''">
+                ACCOUNT = #{account},
+            </if>
+            <if test="pwd != null and pwd != ''">
+                PWD = #{pwd}
+            </if>
+        </trim>
+        where SA_ID = #{saId}
+    </update>
+
+
+</mapper>
