@@ -21,4 +21,8 @@
             (#{item.roleId},#{item.firstId},#{item.secondId},#{item.createTime})
         </foreach>
     </insert>
+
+    <delete id="deleteRMRByRoleId">
+        delete from role_menu_ref where ROLE_ID = #{roleId}
+    </delete>
 </mapper>

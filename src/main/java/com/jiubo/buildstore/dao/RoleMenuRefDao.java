@@ -18,4 +18,6 @@ public interface RoleMenuRefDao extends BaseMapper<RoleMenuRefBean> {
     public List<RoleMenuRefBean> getRMRByCondition(@Param("roleMenuRefBean") RoleMenuRefBean roleMenuRefBean);
 
     public void addRMR(List<RoleMenuRefBean> roleMenuRefBeans);
+
+    public void deleteRMRByRoleId(@Param("roleId") Integer roleId);
 }

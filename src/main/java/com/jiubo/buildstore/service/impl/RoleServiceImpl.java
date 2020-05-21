@@ -9,6 +9,7 @@ import com.jiubo.buildstore.dao.SecondMenuDao;
 import com.jiubo.buildstore.service.RoleService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.jiubo.buildstore.util.CollectionsUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -76,6 +77,32 @@ public class RoleServiceImpl extends ServiceImpl<RoleDao, RoleBean> implements R
 
     @Override
     public void patchRoleById(RoleBean roleBean) {
-        roleDao.patchRoleById(roleBean);
+        if (!StringUtils.isBlank(roleBean.getRoleName())) {
+            roleDao.patchRoleById(roleBean);
+        }
+        List<Integer> secondIdList = roleBean.getSecondIdList();
+        List<RoleMenuRefBean> roleMenuRefBeanList = new ArrayList<>();
+        if (!CollectionsUtils.isEmpty(secondIdList)) {
+            // 解绑
+            roleMenuRefDao.deleteRMRByRoleId(roleBean.getId());
+            // 重新绑定
+            List<SecondMenuBean> secondMenuBeans = secondMenuDao.getSMByCondition(new SecondMenuBean().setIdList(secondIdList));
+            bindRoleMenuRef(roleBean, roleMenuRefBeanList, secondMenuBeans);
+        } else {
+
+            List<Integer> firstIdList = roleBean.getFirstIdList();
+            if (!CollectionsUtils.isEmpty(firstIdList)) {
+                // 解绑
+                roleMenuRefDao.deleteRMRByRoleId(roleBean.getId());
+                // 重新绑定
+                List<SecondMenuBean> secondMenuBeans = secondMenuDao.getSMByCondition(new SecondMenuBean().setFirstIdList(firstIdList));
+                if (!CollectionsUtils.isEmpty(secondMenuBeans)) {
+                    bindRoleMenuRef(roleBean, roleMenuRefBeanList, secondMenuBeans);
+                }
+            }
+        }
+        if (!CollectionsUtils.isEmpty(roleMenuRefBeanList)) {
+            roleMenuRefDao.addRMR(roleMenuRefBeanList);
+        }
     }
 }
