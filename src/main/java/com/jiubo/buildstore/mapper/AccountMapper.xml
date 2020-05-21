@@ -17,9 +17,9 @@
     </select>
 
     <insert id="addAccount" useGeneratedKeys="true" keyProperty="saId">
-        insert into account (NAME,PHONE,ACCOUNT,PWD)
+        insert into account (NAME,PHONE,ACCOUNT,PWD,CREATE_TIME)
         values
-        (#{name},#{phone},#{account},#{pwd})
+        (#{name},#{phone},#{account},#{pwd},#{createTime})
     </insert>
 
     <update id="patchAccount">

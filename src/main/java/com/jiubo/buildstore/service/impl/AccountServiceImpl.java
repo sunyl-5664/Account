@@ -130,6 +130,7 @@ public class AccountServiceImpl implements AccountService {
 
 
     public AccountBean addAccount(AccountBean accountBean) throws Exception {
+        accountBean.setPwd(MD5Util.md5Encrypt32Lower(accountBean.getPwd()));
         List<AccountBean> accountBeans = queryAccountList(accountBean);
         if (StringUtils.isBlank(accountBean.getPwd())) throw new MessageException("密码为空");
         if (null != accountBeans && accountBeans.size() > 0 ) throw new MessageException("该账号已存在");
@@ -138,27 +139,40 @@ public class AccountServiceImpl implements AccountService {
         List<Integer> roleIdList = accountBean.getRoleIdList();
         if (!CollectionsUtils.isEmpty(roleIdList)) {
             List<RoleBean> roleBeanList = roleDao.getRoleByIdList(new RoleBean().setIdList(roleIdList));
-            List<AccountRoleRefBean> accountRoleRefBeans = new ArrayList<>();
-            for (Integer roleId : roleIdList) {
-                AccountRoleRefBean accountRoleRefBean = new AccountRoleRefBean();
-                accountRoleRefBean.setAccountId(accountBean.getSaId());
-                accountRoleRefBean.setRoleId(roleId);
-                accountRoleRefBean.setCreateTime(new Date());
-                accountRoleRefBeans.add(accountRoleRefBean);
-            }
-            accountRoleRefDao.addARRef(accountRoleRefBeans);
+            bindARRef(accountBean, roleIdList);
             accountBean.setRoleBeanList(roleBeanList);
         }
 
         return accountBean;
     }
 
+    private void bindARRef(AccountBean accountBean, List<Integer> roleIdList) {
+        List<AccountRoleRefBean> accountRoleRefBeans = new ArrayList<>();
+        for (Integer roleId : roleIdList) {
+            AccountRoleRefBean accountRoleRefBean = new AccountRoleRefBean();
+            accountRoleRefBean.setAccountId(accountBean.getSaId());
+            accountRoleRefBean.setRoleId(roleId);
+            accountRoleRefBean.setCreateTime(new Date());
+            accountRoleRefBeans.add(accountRoleRefBean);
+        }
+        accountRoleRefDao.addARRef(accountRoleRefBeans);
+    }
+
     @Override
     public void patchAccount(AccountBean accountBean) throws Exception {
         List<AccountBean> accountBeans = queryAccountList(new AccountBean().setAccount(accountBean.getAccount()));
-        if (null != accountBeans && accountBeans.size() > 0 ) throw new MessageException("该账号已存在");
-//        List<AccountBean> accountBeanList = queryAccountList(new AccountBean().setPwd(accountBean.getPwd()));
-//        if (null == accountBeanList || accountBeanList.size() == 0 ) throw new MessageException("原密码输入不正确");
+        if (!CollectionsUtils.isEmpty(accountBeans)) {
+            AccountBean bean = accountBeans.get(0);
+            if (!bean.getSaId().equals(accountBean.getSaId())) throw new MessageException("该用户名已存在");
+        }
+        accountBean.setPwd(MD5Util.md5Encrypt32Lower(accountBean.getPwd()));
         accountDao.patchAccount(accountBean);
+        List<Integer> roleIdList = accountBean.getRoleIdList();
+        if (!CollectionsUtils.isEmpty(roleIdList)) {
+            //先解绑
+            accountRoleRefDao.deleteARRefByAccountId(accountBean.getSaId());
+            //再绑定
+            bindARRef(accountBean, roleIdList);
+        }
     }
 }
