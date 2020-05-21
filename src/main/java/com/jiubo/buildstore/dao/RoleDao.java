@@ -16,4 +16,8 @@ import java.util.List;
  */
 public interface RoleDao extends BaseMapper<RoleBean> {
     public List<RoleBean> getRoleByIdList(@Param("roleBean") RoleBean roleBean);
+
+    public int addRole(@Param("roleBean") RoleBean roleBean);
+
+    public void patchRoleById(@Param("roleBean") RoleBean roleBean);
 }

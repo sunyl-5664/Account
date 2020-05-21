@@ -13,4 +13,21 @@
             </if>
         </where>
     </select>
+
+    <insert id="addRole" useGeneratedKeys="true" keyProperty="id">
+        insert into role
+        (ROLE_NAME,CREATE_TIME)
+        values
+        (#{roleBean.roleName},#{roleBean.createTime})
+    </insert>
+
+    <update id="patchRoleById">
+        update role
+        <trim prefix="set" suffixOverrides=",">
+            <if test="null != roleBean and roleBean.roleName != null and roleBean.roleName != ''">
+                ROLE_NAME = #{roleBean.roleName}
+            </if>
+        </trim>
+        where ID = #{roleBean.id}
+    </update>
 </mapper>

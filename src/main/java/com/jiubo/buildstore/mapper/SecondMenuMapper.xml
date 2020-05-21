@@ -4,9 +4,16 @@
     <select id="getSMByCondition" resultType="com.jiubo.buildstore.bean.SecondMenuBean">
         select * from second_menu
         <where>
-            <if test="secondMenuBean.idList != null and secondMenuBean.idList.size() >0">
-                ID in
+        1=1
+            <if test="null != secondMenuBean and secondMenuBean.idList != null and secondMenuBean.idList.size() >0">
+               and ID in
                 <foreach collection="secondMenuBean.idList" open="(" close=")" separator="," item="item">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="null != secondMenuBean and secondMenuBean.firstIdList != null and secondMenuBean.firstIdList.size() >0">
+                and FIRST_ID in
+                <foreach collection="secondMenuBean.firstIdList" open="(" close=")" separator="," item="item">
                     #{item}
                 </foreach>
             </if>

@@ -14,4 +14,11 @@
             </if>
         </where>
     </select>
+
+    <insert id="addRMR" parameterType="java.util.List">
+        insert into role_menu_ref (ROLE_ID,FIRST_ID,SECOND_ID,CREATE_TIME) values
+        <foreach collection="list" separator="," item="item" index="index">
+            (#{item.roleId},#{item.firstId},#{item.secondId},#{item.createTime})
+        </foreach>
+    </insert>
 </mapper>
