@@ -50,7 +50,7 @@ public class SecondMenuBean implements Serializable {
     private Integer firstId;
 
     @TableField(exist = false)
-    private List<Integer> firstIdList;
+    private List<Integer> idList;
     /**
      * 菜单唯一标识
      */

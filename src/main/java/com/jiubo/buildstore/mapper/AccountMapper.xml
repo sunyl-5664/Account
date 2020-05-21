@@ -4,7 +4,7 @@
 
     <select id="queryAccountList" parameterType="com.jiubo.buildstore.bean.AccountBean"
             resultType="com.jiubo.buildstore.bean.AccountBean">
-        SELECT SA_ID,NAME,PHONE,ACCOUNT,PWD,ROLE_ID
+        SELECT SA_ID,NAME,PHONE,ACCOUNT,PWD
         FROM account
         <where>
             <if test="account != null and account != ''">
@@ -17,9 +17,9 @@
     </select>
 
     <insert id="addAccount" useGeneratedKeys="true" keyProperty="saId">
-        insert into account (NAME,PHONE,ACCOUNT,PWD,ROLE_ID)
+        insert into account (NAME,PHONE,ACCOUNT,PWD)
         values
-        (#{name},#{phone},#{account},#{pwd},#{roleId})
+        (#{name},#{phone},#{account},#{pwd})
     </insert>
 
     <update id="patchAccount">
@@ -35,10 +35,7 @@
                 ACCOUNT = #{account},
             </if>
             <if test="pwd != null and pwd != ''">
-                PWD = #{pwd},
-            </if>
-            <if test="accountId != null">
-                ROLE_ID = #{roleId}
+                PWD = #{pwd}
             </if>
         </trim>
         where SA_ID = #{saId}

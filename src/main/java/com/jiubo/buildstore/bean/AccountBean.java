@@ -40,4 +40,7 @@ public class AccountBean implements Serializable {
 
     @TableField(exist = false)
     private List<RoleBean> roleBeanList;
+
+    @TableField(exist = false)
+    private List<Integer> roleIdList;
 }

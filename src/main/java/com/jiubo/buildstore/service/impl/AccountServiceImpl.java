@@ -22,6 +22,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletResponse;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -86,33 +88,38 @@ public class AccountServiceImpl implements AccountService {
             jsonObject.put("accountData", bean);
             // 用户权限
             Integer saId = bean.getSaId();
-            List<RoleMenuRefBean> rmrByConditionList = roleMenuRefDao.getRMRByCondition(new RoleMenuRefBean().setAccountId(saId));
-            if (!CollectionsUtils.isEmpty(rmrByConditionList)) {
-                // 一级菜单id集合
-                List<Integer> firstIdList = rmrByConditionList.stream().map(RoleMenuRefBean::getFirstId).collect(Collectors.toList());
-                // 一级菜单集合
-                List<FirstMenuBean> fmByConditionList = firstMenuDao.getFMByCondition(new FirstMenuBean().setIdList(firstIdList));
-                // 二级菜单集合
-                List<SecondMenuBean> smByConditionList = secondMenuDao.getSMByCondition(new SecondMenuBean().setFirstIdList(firstIdList));
-                Map<Integer, List<SecondMenuBean>> secondMap = null;
-                if (!CollectionsUtils.isEmpty(smByConditionList)) {
-                    secondMap = smByConditionList.stream().collect(Collectors.groupingBy(SecondMenuBean::getFirstId));
-                }
-                // 一级 二级菜单绑定关系
-                for (FirstMenuBean firstMenuBean : fmByConditionList) {
-                    if (null != secondMap) {
-                        List<SecondMenuBean> secondMenuBeans = secondMap.get(firstMenuBean.getId());
-                        firstMenuBean.setSecondMenuBeanList(secondMenuBeans);
-                    }
-                }
-                jsonObject.put("menuData",fmByConditionList);
-            }
+            List<AccountRoleRefBean> arRefByAccIdList = accountRoleRefDao.getARRefByAccId(saId);
             // 用户角色
-            List<AccountRoleRefBean> arRefByAccIdList = accountRoleRefDao.getARRefByAccId(bean.getSaId());
             if (!CollectionsUtils.isEmpty(arRefByAccIdList)) {
                 List<Integer> roleIdList = arRefByAccIdList.stream().map(AccountRoleRefBean::getRoleId).collect(Collectors.toList());
                 List<RoleBean> roleBeanList = roleDao.getRoleByIdList(new RoleBean().setIdList(roleIdList));
                 bean.setRoleBeanList(roleBeanList);
+
+                // 根据角色查出对应菜单
+                List<RoleMenuRefBean> rmrByConditionList = roleMenuRefDao.getRMRByCondition(new RoleMenuRefBean().setRoleIdList(roleIdList));
+
+                if (!CollectionsUtils.isEmpty(rmrByConditionList)) {
+                    // 一级菜单id集合
+                    List<Integer> firstIdList = rmrByConditionList.stream().map(RoleMenuRefBean::getFirstId).distinct().collect(Collectors.toList());
+                    // 一级菜单集合
+                    List<FirstMenuBean> fmByConditionList = firstMenuDao.getFMByCondition(new FirstMenuBean().setIdList(firstIdList));
+                    // 二级菜单id集合
+                    List<Integer> secondIdList = rmrByConditionList.stream().map(RoleMenuRefBean::getSecondId).distinct().collect(Collectors.toList());
+                    // 二级菜单集合
+                    List<SecondMenuBean> smByConditionList = secondMenuDao.getSMByCondition(new SecondMenuBean().setIdList(secondIdList));
+                    Map<Integer, List<SecondMenuBean>> secondMap = null;
+                    if (!CollectionsUtils.isEmpty(smByConditionList)) {
+                        secondMap = smByConditionList.stream().collect(Collectors.groupingBy(SecondMenuBean::getFirstId));
+                    }
+                    // 一级 二级菜单绑定关系
+                    for (FirstMenuBean firstMenuBean : fmByConditionList) {
+                        if (null != secondMap) {
+                            List<SecondMenuBean> secondMenuBeans = secondMap.get(firstMenuBean.getId());
+                            firstMenuBean.setSecondMenuBeanList(secondMenuBeans);
+                        }
+                    }
+                    jsonObject.put("menuData",fmByConditionList);
+                }
             }
 
             CookieTools.addCookie(response, "accessToken", accessToken, tokenLife);
@@ -124,8 +131,24 @@ public class AccountServiceImpl implements AccountService {
 
     public AccountBean addAccount(AccountBean accountBean) throws Exception {
         List<AccountBean> accountBeans = queryAccountList(accountBean);
+        if (StringUtils.isBlank(accountBean.getPwd())) throw new MessageException("密码为空");
         if (null != accountBeans && accountBeans.size() > 0 ) throw new MessageException("该账号已存在");
         accountDao.addAccount(accountBean);
+
+        List<Integer> roleIdList = accountBean.getRoleIdList();
+        if (!CollectionsUtils.isEmpty(roleIdList)) {
+            List<RoleBean> roleBeanList = roleDao.getRoleByIdList(new RoleBean().setIdList(roleIdList));
+            List<AccountRoleRefBean> accountRoleRefBeans = new ArrayList<>();
+            for (Integer roleId : roleIdList) {
+                AccountRoleRefBean accountRoleRefBean = new AccountRoleRefBean();
+                accountRoleRefBean.setAccountId(accountBean.getSaId());
+                accountRoleRefBean.setRoleId(roleId);
+                accountRoleRefBean.setCreateTime(new Date());
+                accountRoleRefBeans.add(accountRoleRefBean);
+            }
+            accountRoleRefDao.addARRef(accountRoleRefBeans);
+            accountBean.setRoleBeanList(roleBeanList);
+        }
 
         return accountBean;
     }

@@ -4,9 +4,9 @@
     <select id="getSMByCondition" resultType="com.jiubo.buildstore.bean.SecondMenuBean">
         select * from second_menu
         <where>
-            <if test="secondMenuBean.firstIdList != null and secondMenuBean.firstIdList.size() >0">
-                FIRST_ID in
-                <foreach collection="secondMenuBean.firstIdList" open="(" close=")" separator="," item="item">
+            <if test="secondMenuBean.idList != null and secondMenuBean.idList.size() >0">
+                ID in
+                <foreach collection="secondMenuBean.idList" open="(" close=")" separator="," item="item">
                     #{item}
                 </foreach>
             </if>
