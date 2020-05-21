@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jiubo.buildstore.dao.RoleMenuRefDao">
+
+    <select id="getRMRByCondition" resultType="com.jiubo.buildstore.bean.RoleMenuRefBean">
+        select * from role_menu_ref
+        <where>
+        1=1
+            <if test="roleMenuRefBean.accountId != null">
+                and ACCOUNT_ID = #{roleMenuRefBean.accountId}
+            </if>
+            <if test="roleMenuRefBean.roleId != null">
+                and ROLE_ID = #{roleMenuRefBean.roleId}
+            </if>
+        </where>
+    </select>
+</mapper>

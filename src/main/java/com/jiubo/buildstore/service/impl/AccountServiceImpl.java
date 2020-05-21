@@ -5,12 +5,14 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.jiubo.buildstore.Exception.MessageException;
-import com.jiubo.buildstore.bean.AccountBean;
+import com.jiubo.buildstore.bean.*;
 import com.jiubo.buildstore.common.Constant;
-import com.jiubo.buildstore.dao.AccountDao;
+import com.jiubo.buildstore.dao.*;
 import com.jiubo.buildstore.service.AccountService;
+import com.jiubo.buildstore.util.CollectionsUtils;
 import com.jiubo.buildstore.util.CookieTools;
 import com.jiubo.buildstore.util.MD5Util;
+import com.jiubo.buildstore.util.TokenUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +23,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.servlet.http.HttpServletResponse;
 import java.net.URLEncoder;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -42,7 +46,16 @@ public class AccountServiceImpl implements AccountService {
     @Autowired
     private AccountDao accountDao;
 
-
+    @Autowired
+    private FirstMenuDao firstMenuDao;
+    @Autowired
+    private SecondMenuDao secondMenuDao;
+    @Autowired
+    private RoleMenuRefDao roleMenuRefDao;
+    @Autowired
+    private AccountRoleRefDao accountRoleRefDao;
+    @Autowired
+    private RoleDao roleDao;
     @Override
     public List<AccountBean> queryAccountList(AccountBean accountBean) throws Exception {
         return accountDao.queryAccountList(accountBean);
@@ -66,9 +79,41 @@ public class AccountServiceImpl implements AccountService {
             bean.setPwd("");
 
             HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getResponse();
-            String accessToken = URLEncoder.encode(bean.getAccount().concat("604800"), Constant.Charset.UTF8);
+//            String accessToken = URLEncoder.encode(bean.getAccount().concat("604800"), Constant.Charset.UTF8);
+            // 用户个人信息及token
+            String accessToken = TokenUtils.token(accountBean.getAccount(),accountBean.getPwd());
             jsonObject.put("accessToken", accessToken);
             jsonObject.put("accountData", bean);
+            // 用户权限
+            Integer saId = bean.getSaId();
+            List<RoleMenuRefBean> rmrByConditionList = roleMenuRefDao.getRMRByCondition(new RoleMenuRefBean().setAccountId(saId));
+            if (!CollectionsUtils.isEmpty(rmrByConditionList)) {
+                // 一级菜单id集合
+                List<Integer> firstIdList = rmrByConditionList.stream().map(RoleMenuRefBean::getFirstId).collect(Collectors.toList());
+                // 一级菜单集合
+                List<FirstMenuBean> fmByConditionList = firstMenuDao.getFMByCondition(new FirstMenuBean().setIdList(firstIdList));
+                // 二级菜单集合
+                List<SecondMenuBean> smByConditionList = secondMenuDao.getSMByCondition(new SecondMenuBean().setFirstIdList(firstIdList));
+                Map<Integer, List<SecondMenuBean>> secondMap = null;
+                if (!CollectionsUtils.isEmpty(smByConditionList)) {
+                    secondMap = smByConditionList.stream().collect(Collectors.groupingBy(SecondMenuBean::getFirstId));
+                }
+                // 一级 二级菜单绑定关系
+                for (FirstMenuBean firstMenuBean : fmByConditionList) {
+                    if (null != secondMap) {
+                        List<SecondMenuBean> secondMenuBeans = secondMap.get(firstMenuBean.getId());
+                        firstMenuBean.setSecondMenuBeanList(secondMenuBeans);
+                    }
+                }
+                jsonObject.put("menuData",fmByConditionList);
+            }
+            // 用户角色
+            List<AccountRoleRefBean> arRefByAccIdList = accountRoleRefDao.getARRefByAccId(bean.getSaId());
+            if (!CollectionsUtils.isEmpty(arRefByAccIdList)) {
+                List<Integer> roleIdList = arRefByAccIdList.stream().map(AccountRoleRefBean::getRoleId).collect(Collectors.toList());
+                List<RoleBean> roleBeanList = roleDao.getRoleByIdList(new RoleBean().setIdList(roleIdList));
+                bean.setRoleBeanList(roleBeanList);
+            }
 
             CookieTools.addCookie(response, "accessToken", accessToken, tokenLife);
             CookieTools.addCookie(response, "accountData", URLEncoder.encode(JSON.toJSONString(bean), Constant.Charset.UTF8), accountLife);
