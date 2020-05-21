@@ -1,6 +1,5 @@
 package com.jiubo.buildstore.util;
 
-import com.jiubo.buildstore.bean.BuildingBean;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;

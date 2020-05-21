@@ -42,5 +42,6 @@
                 MENU_CODE = #{secondMenuBean.menuCode}
             </if>
         </trim>
+        where ID = #{secondMenuBean.id}
     </update>
 </mapper>

@@ -3,7 +3,6 @@ package com.jiubo.buildstore.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.jiubo.buildstore.Exception.MessageException;
 import com.jiubo.buildstore.bean.*;
 import com.jiubo.buildstore.common.Constant;

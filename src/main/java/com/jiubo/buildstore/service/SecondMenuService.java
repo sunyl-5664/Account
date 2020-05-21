@@ -2,6 +2,9 @@ package com.jiubo.buildstore.service;
 
 import com.jiubo.buildstore.bean.SecondMenuBean;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +16,9 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface SecondMenuService extends IService<SecondMenuBean> {
 
+    public List<SecondMenuBean> getAllSM();
+
+    public void addSM(SecondMenuBean secondMenuBean);
+
+    public void patchSMById(SecondMenuBean secondMenuBean);
 }
